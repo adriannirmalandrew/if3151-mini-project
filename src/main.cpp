@@ -8,6 +8,9 @@
 #include <crow.h>
 #include <crow/http_response.h>
 
+#include "utils.h"
+#include "maxheap.h"
+
 int main() {
     crow::SimpleApp app;
 
@@ -19,18 +22,24 @@ int main() {
 
     // Add entry
     CROW_ROUTE(app, "/add_entry")([](const crow::request& req, crow::response& res){
+        // TODO Write entry to SQLite
+        // TODO Update in-memory heap
         res = crow::response(501, "WIP");
         res.end();
     });
 
     // Delete entry
     CROW_ROUTE(app, "/delete_entry")([](const crow::request& req, crow::response& res){
+        // TODO Drop entry from SQLite
+        // TODO Update in-memory heap
         res = crow::response(501, "WIP");
         res.end();
     });
 
     // Get all entries, sorted, in JSON
     CROW_ROUTE(app, "/get_all_entries")([](const crow::request& req, crow::response& res){
+        // TODO Select all entries from SQLite
+        // TODO Update in-memory heap
         res = crow::response(501, "WIP");
         res.end();
     });
