@@ -4,23 +4,28 @@
 #pragma once
 
 #include <string>
+#include <ctime>
+#include <cmath>
 
-using std::string;
+using std::string, std::exp;
 
 class Ticket {
 private:
     // Fields from DB
-    string uuid; string description; int creation_time; int deadline_time; int priority;
+    string uuid; string description; long long creation_time; long long deadline_time; int priority;
     // Calculated fields
-    // TODO
+    int days_left; int score;
 
-    int calculate_values() {
-        // TODO
-        return -1;
+    void calculate_values() {
+        // Compute days
+        long long current_timestamp = static_cast<long long>(std::time(nullptr));
+        this->days_left = (this->deadline_time - current_timestamp) / 86400;
+        // Compute score with P + (10000 * e-D)
+        this->score = this->priority + (10000 * exp(-1 * this->days_left));
     }
 
 public:
-    Ticket(string uuid, string description, int creation_time, int deadline_time, int priority) {
+    Ticket(string uuid, string description, long long creation_time, long long deadline_time, int priority) {
         this->uuid = uuid;
         this->description = description;
         this->creation_time = creation_time;
@@ -40,15 +45,23 @@ public:
         return this->description;
     }
 
-    int get_creation_time() {
+    long long get_creation_time() {
         return this->creation_time;
     }
 
-    int get_deadline_time() {
+    long long get_deadline_time() {
         return this->deadline_time;
     }
 
     int get_priority() {
         return this->priority;
+    }
+
+    int get_days_left() {
+        return this->days_left;
+    }
+
+    int get_score() {
+        return this->score;
     }
 };

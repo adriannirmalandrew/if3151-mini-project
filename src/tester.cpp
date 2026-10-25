@@ -8,8 +8,10 @@ using std::cout, std::vector, std::endl;
 
 int main() {
     // Create record
-    add_record_to_db("test", "test_desc", 1001, 1002, 300);
-    add_record_to_db("test67", "test_desc", 1067, 1069, 300);
+    long long current_timestamp = static_cast<long long>(std::time(nullptr));
+    long long test_days = current_timestamp + (86400);
+
+    add_record_to_db("test73", "test_desc", current_timestamp, test_days, 300);
 
     // Delete record
     delete_record_from_db("test");
@@ -19,6 +21,6 @@ int main() {
     vector<Ticket> records = get_all_entries_from_db();
     cout << "got records" << endl;
     for(Ticket ticket: records) {
-        cout << ticket.get_uuid() << ticket.get_description() << endl;
+        cout << ticket.get_uuid() << " " << ticket.get_description() << " " << ticket.get_days_left() << " " << ticket.get_score() << endl;
     }
 }

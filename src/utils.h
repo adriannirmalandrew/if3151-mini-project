@@ -14,7 +14,7 @@
 using std::cout, std::string, std::to_string, std::vector;
 
 // Write data to SQLite
-bool add_record_to_db(string uuid, string description, int creation_time, int deadline_time, int priority) {
+bool add_record_to_db(string uuid, string description, long long creation_time, long long deadline_time, int priority) {
     // Open SQLite, create file if does not exist
     sqlite3 *db_pointer = nullptr;
     int status = sqlite3_open("tickets.db", &db_pointer);
@@ -23,7 +23,7 @@ bool add_record_to_db(string uuid, string description, int creation_time, int de
     }
     // Create table if it doesn't exist
     string create_table_query = "create table if not exists tickets(\
-        uuid string primary key, description string, creation_time int, deadline_time int, priority int\
+        uuid string primary key, description string, creation_time integer, deadline_time integer, priority integer\
     );";
     sqlite3_exec(db_pointer, create_table_query.c_str(), 0, 0, nullptr);
 
@@ -35,8 +35,8 @@ bool add_record_to_db(string uuid, string description, int creation_time, int de
     // Add parameters
     sqlite3_bind_text(add_record_query_stmt, 1, uuid.c_str(), -1, SQLITE_STATIC);
     sqlite3_bind_text(add_record_query_stmt, 2, description.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_int(add_record_query_stmt, 3, creation_time);
-    sqlite3_bind_int(add_record_query_stmt, 4, deadline_time);
+    sqlite3_bind_int64(add_record_query_stmt, 3, creation_time);
+    sqlite3_bind_int64(add_record_query_stmt, 4, deadline_time);
     sqlite3_bind_int(add_record_query_stmt, 5, priority);
     // Finalize and execute
     sqlite3_step(add_record_query_stmt);
@@ -88,8 +88,8 @@ vector<Ticket> get_all_entries_from_db() {
         string res_uuid(reinterpret_cast<const char*>(res_uuid_raw));
         string res_description(reinterpret_cast<const char*>(res_description_raw));
 
-        int res_creation_time = sqlite3_column_int(get_all_entries_query_stmt, 2);
-        int res_deadline_time = sqlite3_column_int(get_all_entries_query_stmt, 3);
+        long long res_creation_time = sqlite3_column_int64(get_all_entries_query_stmt, 2);
+        long long res_deadline_time = sqlite3_column_int64(get_all_entries_query_stmt, 3);
         int res_priority = sqlite3_column_int(get_all_entries_query_stmt, 4);
 
         results.push_back(
