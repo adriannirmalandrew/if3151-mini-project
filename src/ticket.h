@@ -24,7 +24,7 @@ private:
         long long current_timestamp = static_cast<long long>(std::time(nullptr));
         this->days_left = (this->deadline_time - current_timestamp) / 86400;
         // Compute score with P + (10000 * e-D)
-        this->score = this->priority + (10000 * exp(-1 * this->days_left));
+        this->score = this->priority + (100000 * exp(-1 * this->days_left));
     }
 
 public:
@@ -40,7 +40,7 @@ public:
     }
 
     // Convert to JSON using Crow
-    string get_as_json() {
+    crow::json::wvalue get_as_json() {
         crow::json::wvalue ticket_json;
         ticket_json["uuid"] = this->uuid;
         ticket_json["description"] = this->description;
@@ -50,7 +50,7 @@ public:
         ticket_json["days_left"] = this->days_left;
         ticket_json["score"] = this->score;
 
-        return ticket_json.dump();
+        return ticket_json;
     }
 
     // Operators for MaxHeap

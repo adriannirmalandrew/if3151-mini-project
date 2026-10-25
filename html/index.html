@@ -1,8 +1,213 @@
-<html>
-    <head>
-        <title>ADSA Mini Project</title>
-    </head>
-    <body>
-        <h1>This is a test.</h1>
-    </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IF3151 ADSA Mini Project</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f9; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { color: #333; }
+
+        /* Form Styling */
+        #add-form { display: flex; gap: 10px; margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; background: #fafafa; }
+        #add-form input, #add-form button { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        #add-form button { background-color: #007bff; color: white; cursor: pointer; border: none; }
+        #add-form button:hover { background-color: #0056b3; }
+
+        /* Table Styling */
+        #ticket-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        #ticket-table th, #ticket-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        #ticket-table th { background-color: #f2f2f2; color: #333; }
+        .priority-high { background-color: #f9dddd; font-weight: bold; } /* High Priority */
+        .priority-med { background-color: #fff3cd; }           /* Medium Priority */
+        .priority-low { background-color: #d4edda; }          /* Low Priority */
+        .delete-btn { background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; }
+        .delete-btn:hover { background-color: #c82333; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎫 ADSA Ticket Manager</h1>
+
+    <!-- Add New Ticket Form -->
+    <h2>Add New Ticket</h2>
+    <div id="add-form">
+        <!--<input type="text" id="uuid_input" placeholder="UUID" required>-->
+        <input type="text" id="description_input" placeholder="Description" required>
+        <!--<input type="number" id="creation_time_input" placeholder="Creation Time (Unix)" required>-->
+
+        <!--<input type="number" id="deadline_time_input" placeholder="Deadline (Unix)" required>-->
+        <label for="deadline_time_input">Deadline: </label>
+        <input type="date" id="deadline_time_input" required>
+
+        <label for="priority_input">Priority: </label>
+        <select id="priority_input" required>
+            <option value=100>P1 (Low)</option>
+            <option value=200>P2 (Med)</option>
+            <option value=300>P3 (High)</option>
+        </select>
+        <button onclick="addTicket()">Submit Ticket</button>
+    </div>
+
+    <!-- Queue Display -->
+    <h2>Ticket Queue, Sorted by Score:</h2>
+    <p id="status_message" style="color: red;"></p>
+
+    <table id="ticket-table">
+        <thead>
+            <tr>
+                <th>UUID</th>
+                <th>Description</th>
+                <th>Priority</th>
+                <th>Days Left</th>
+                <th>Score</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="ticket-body">
+            <!-- Ticket rows will be injected here by JavaScript -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const API_BASE_URL = 'http://localhost:18080';
+
+    /**
+     * Fetches all tickets from the API and updates the table display.
+     */
+    async function fetchAndDisplayTickets() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/get_all_entries`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+            // The response is a JSON array: [{"id": "T001", "description": "...", ...}]
+            const tickets = await response.json();
+
+            const ticketBody = document.getElementById('ticket-body');
+            ticketBody.innerHTML = ''; // Clear existing entries
+
+            tickets.forEach(ticket => {
+                const row = document.createElement('tr');
+
+                // --- Determine CSS class based on priority ---
+                let rowClass = '';
+                if (ticket.priority >= 8) {
+                    rowClass = 'priority-high';
+                } else if (ticket.priority >= 4) {
+                    rowClass = 'priority-med';
+                } else {
+                    rowClass = 'priority-low';
+                }
+
+                row.className = rowClass;
+
+                var priority_id = null;
+                if(ticket.priority == 100)
+                  priority_id = 'P1';
+                else if(ticket.priority == 200)
+                  priority_id = 'P2';
+                else if(ticket.priority == 300)
+                  priority_id = 'P3';
+
+                // --- Populate the table cells ---
+                row.innerHTML = `
+                    <td>${ticket.uuid}</td>
+                    <td>${ticket.description}</td>
+                    <td>${priority_id}</td>
+                    <td>${ticket.days_left}</td>
+                    <td>${ticket.score}</td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteTicket('${ticket.uuid}')">Delete</button>
+                    </td>
+                `;
+                ticketBody.appendChild(row);
+            });
+            document.getElementById('status_message').textContent = ''; // Clear status message
+        } catch (error) {
+            console.error("Fetch error:", error);
+            document.getElementById('status_message').textContent = `Could not connect to backend API or error occurred: ${error.message}`;
+        }
+    }
+
+    /**
+     * Handles adding a new ticket via POST request to the /add_entry endpoint.
+     */
+    async function addTicket() {
+        // Generate UUID
+        const uuid = window.crypto.randomUUID();
+        const desc = document.getElementById('description_input').value;
+        // Convert deadline date to unix timestamp
+        const deadline_date = document.getElementById('deadline_time_input').value;
+        const timestampMs = new Date(deadline_date).getTime();
+        const deadline = Math.floor(timestampMs / 1000);
+
+        const priority = document.getElementById('priority_input').value;
+
+        const payload = new URLSearchParams();
+        payload.append("uuid", uuid);
+        payload.append("description", desc);
+        payload.append("deadline_time", deadline);
+        payload.append("priority", priority);
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/add_entry`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: payload
+            });
+
+            if (response.ok) {
+                alert('Ticket added successfully!');
+                fetchAndDisplayTickets(); // Refresh the list
+                // Clear inputs
+                document.getElementById('uuid_input').value = '';
+                document.getElementById('description_input').value = '';
+                document.getElementById('priority_input').value = '';
+            } else {
+                const errorData = await response.text();
+                alert(`Failed to add ticket: Status ${response.status}. Server said: ${errorData}`);
+            }
+
+        } catch (error) {
+            document.getElementById('status_message').textContent = `Network Error connecting to the server. Is the C++ backend running?`;
+        }
+    }
+
+    /**
+     * Handles deleting a ticket via POST request to the /delete_entry endpoint.
+     */
+    async function deleteTicket(uuid) {
+        if (!confirm(`Are you sure you want to delete ticket ${uuid}?`)) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/delete_entry`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                // Send the UUID as a form parameter
+                body: `uuid=${uuid}`
+            });
+
+            if (response.ok) {
+                alert(`Ticket ${uuid} successfully deleted.`);
+                fetchAndDisplayTickets(); // Refresh the list
+            } else {
+                const errorData = await response.text();
+                alert(`Failed to delete ticket: Status ${response.status}. Server response: ${errorData}`);
+            }
+        } catch (error) {
+            console.error("Deletion error:", error);
+            document.getElementById('status_message').textContent = `Network Error deleting ticket. Is the backend running?`;
+        }
+    }
+
+    window.onload = function() {
+        console.log("Page loaded. Fetching ticket data from the backend...");
+        fetchAndDisplayTickets();
+    };
+</script>
+
+</body>
 </html>

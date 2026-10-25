@@ -2,16 +2,14 @@
  * Main Executable of IF3151 ADSA Mini Project
  * Support Ticket Priority Queue using Max Heap
  * Implementation: SQLite, Single Page Web Interface with controls and queue display
- * Boost.Beast for REST, SQLite for storage and almost-vanilla JS for UI
+ * Crow.cpp for REST, SQLite for storage and almost-vanilla JS for UI
  * SQLite columns: uuid (String), description (String), creation_time (Integer), deadline_time (Integer), priority (Integer)
  */
 
-#include <crow/json.h>
-#include <map>
 #include <string>
-#include <iostream>
 
 #include <crow.h>
+#include <crow/json.h>
 #include <crow/http_response.h>
 
 #include "ticket.h"
@@ -31,10 +29,10 @@ int main() {
     // Add entry
     CROW_ROUTE(app, "/add_entry").methods("POST"_method)([](const crow::request& req, crow::response& res){
         // Write entry to SQLite
-        crow::query_string body_params = req.url_params;
+        crow::query_string body_params = req.get_body_params();
         string req_uuid(body_params.get("uuid"));
         string req_description(body_params.get("description"));
-        long long req_creation_time = stoll(body_params.get("creation_time"));
+        long long req_creation_time = static_cast<long long>(std::time(nullptr));
         long long req_deadline_time = stoll(body_params.get("deadline_time"));
         int req_priority = stoi(body_params.get("priority"));
 
@@ -47,7 +45,7 @@ int main() {
     // Delete entry
     CROW_ROUTE(app, "/delete_entry").methods("POST"_method)([](const crow::request& req, crow::response& res){
         // Drop entry from SQLite
-        crow::query_string body_params = req.url_params;
+        crow::query_string body_params = req.get_body_params();
         string req_uuid(body_params.get("uuid"));
 
         bool del_success = delete_record_from_db(req_uuid);
@@ -59,7 +57,6 @@ int main() {
     // Get all entries, sorted, in JSON
     CROW_ROUTE(app, "/get_all_entries")([](const crow::request& req, crow::response& res){
         // Select all entries from SQLite
-        // TODO: Implement and integrate sorting with maxheap
         vector<Ticket> tickets_list = get_all_entries_from_db_sorted();
         vector<crow::json::wvalue> tickets_list_json;
         for(Ticket ticket: tickets_list) {
