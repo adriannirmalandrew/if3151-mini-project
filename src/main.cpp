@@ -3,13 +3,14 @@
  * Support Ticket Priority Queue using Max Heap
  * Implementation: SQLite, Single Page Web Interface with controls and queue display
  * Boost.Beast for REST, SQLite for storage and almost-vanilla JS for UI
+ * SQLite columns: uuid (String), description (String), creation_time (Integer), deadline_time (Integer), priority (Integer)
  */
 
 #include <crow.h>
 #include <crow/http_response.h>
 
 #include "utils.h"
-#include "maxheap.h"
+// #include "maxheap.h"
 
 int main() {
     crow::SimpleApp app;

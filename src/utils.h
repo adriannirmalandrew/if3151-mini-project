@@ -1,38 +1,103 @@
 /*
- * Header file that defines application functionality and required datatypes
+ * Header file that defines database functionality
  */
+#pragma once
 
+#include <iostream>
 #include <string>
+#include <vector>
 
-class Ticket {
-private:
-    std::string uuid;
-    int priority_addend;
-    int days_left;
-    int final_score;
+#include <sqlite3.h>
 
-    int calculate_final_score() {
-        // Calculate score using formula
-        return -1;
+#include "ticket.h"
+
+using std::cout, std::string, std::to_string, std::vector;
+
+// Write data to SQLite
+bool add_record_to_db(string uuid, string description, int creation_time, int deadline_time, int priority) {
+    // Open SQLite, create file if does not exist
+    sqlite3 *db_pointer = nullptr;
+    int status = sqlite3_open("tickets.db", &db_pointer);
+    if(db_pointer == nullptr) {
+        return false;
     }
+    // Create table if it doesn't exist
+    string create_table_query = "create table if not exists tickets(\
+        uuid string primary key, description string, creation_time int, deadline_time int, priority int\
+    );";
+    sqlite3_exec(db_pointer, create_table_query.c_str(), 0, 0, nullptr);
 
-public:
-    Ticket(std::string uuid, int priority_addend, int days_left) {
-        this->uuid = uuid;
-        this->priority_addend = priority_addend;
-        this->days_left = days_left;
-        this->final_score = calculate_final_score();
-    }
-};
+    // Add record using prepared statement
+    string add_record_query = "insert into tickets(uuid, description, creation_time, deadline_time, priority)\
+        values(?, ?, ?, ?, ?);";
+    sqlite3_stmt *add_record_query_stmt = nullptr;
+    sqlite3_prepare_v2(db_pointer, add_record_query.c_str(), -1, &add_record_query_stmt, 0);
+    // Add parameters
+    sqlite3_bind_text(add_record_query_stmt, 1, uuid.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(add_record_query_stmt, 2, description.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(add_record_query_stmt, 3, creation_time);
+    sqlite3_bind_int(add_record_query_stmt, 4, deadline_time);
+    sqlite3_bind_int(add_record_query_stmt, 5, priority);
+    // Finalize and execute
+    sqlite3_step(add_record_query_stmt);
+    sqlite3_finalize(add_record_query_stmt);
 
-void add_record_to_db() {
-    // TODO
+    // Close DB
+    sqlite3_close(db_pointer);
+    return true;
 }
 
-void delete_record_from_db() {
-    // TODO
+// Delete record with the given UUID from SQLite
+bool delete_record_from_db(string uuid) {
+    sqlite3 *db_pointer = nullptr;
+    int status = sqlite3_open("tickets.db", &db_pointer);
+    if(db_pointer == nullptr) {
+        return false;
+    }
+
+    string delete_record_query = "delete from tickets where uuid = ?;";
+    sqlite3_stmt *delete_record_query_stmt = nullptr;
+    sqlite3_prepare_v2(db_pointer, delete_record_query.c_str(), -1, &delete_record_query_stmt, 0);
+    sqlite3_bind_text(delete_record_query_stmt, 1, uuid.c_str(), -1, SQLITE_STATIC);
+    sqlite3_step(delete_record_query_stmt);
+    sqlite3_finalize(delete_record_query_stmt);
+
+    sqlite3_close(db_pointer);
+    return true;
 }
 
-void get_all_entries_from_db() {
-    // TODO
+// Read all data entries from SQLite
+vector<Ticket> get_all_entries_from_db() {
+    // List of results
+    vector<Ticket> results;
+
+    sqlite3 *db_pointer = nullptr;
+    int status = sqlite3_open("tickets.db", &db_pointer);
+    if(db_pointer == nullptr) {
+        return results; // Returns empty vector
+    }
+
+    string get_all_entries_query = "select * from tickets;";
+    sqlite3_stmt *get_all_entries_query_stmt = nullptr;
+    sqlite3_prepare_v2(db_pointer, get_all_entries_query.c_str(), -1, &get_all_entries_query_stmt, 0);
+
+    while(sqlite3_step(get_all_entries_query_stmt) == SQLITE_ROW) {
+        const unsigned char * res_uuid_raw = sqlite3_column_text(get_all_entries_query_stmt, 0);
+        const unsigned char * res_description_raw = sqlite3_column_text(get_all_entries_query_stmt, 1);
+
+        string res_uuid(reinterpret_cast<const char*>(res_uuid_raw));
+        string res_description(reinterpret_cast<const char*>(res_description_raw));
+
+        int res_creation_time = sqlite3_column_int(get_all_entries_query_stmt, 2);
+        int res_deadline_time = sqlite3_column_int(get_all_entries_query_stmt, 3);
+        int res_priority = sqlite3_column_int(get_all_entries_query_stmt, 4);
+
+        results.push_back(
+            Ticket(res_uuid, res_description, res_creation_time, res_deadline_time, res_priority)
+        );
+    }
+    sqlite3_finalize(get_all_entries_query_stmt);
+
+    sqlite3_close(db_pointer);
+    return results;
 }

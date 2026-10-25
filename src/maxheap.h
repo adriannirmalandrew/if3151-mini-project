@@ -1,22 +1,25 @@
 /*
  * Header file that defines the Max Heap data structure
  */
+#pragma once
 
 #include <iostream>
 #include <vector>
 #include <stdexcept>
+
+#include "ticket.h"
 
 class MaxHeap {
 private:
     std::vector<Ticket> heap;
 
     // Helper methods to get indices of parent and children
-    int parent(int i) { return (i - 1) / 2; }
-    int leftChild(int i) { return (2 * i) + 1; }
-    int rightChild(int i) { return (2 * i) + 2; }
+    int parent(Ticket i) { return (i - 1) / 2; }
+    int leftChild(Ticket i) { return (2 * i) + 1; }
+    int rightChild(Ticket i) { return (2 * i) + 2; }
 
     // Bubble up the element to maintain the max-heap property (used after insertion)
-    void heapifyUp(int i) {
+    void heapifyUp(Ticket i) {
         while (i > 0 && heap[parent(i)] < heap[i]) {
             std::swap(heap[parent(i)], heap[i]);
             i = parent(i);
@@ -24,7 +27,7 @@ private:
     }
 
     // Bubble down the element to maintain the max-heap property (used after extraction)
-    void heapifyDown(int i) {
+    void heapifyDown(Ticket i) {
         int maxIndex = i;
         int left = leftChild(i);
         int right = rightChild(i);
@@ -46,32 +49,32 @@ private:
 
 public:
     // Insert a new key into the max heap
-    void insert(int key) {
+    void insert(Ticket key) {
         heap.push_back(key);
-        heapifyUp(heap.size() - 1);
+        // heapifyUp(heap.size() - 1);
     }
 
     // Remove and return the maximum element (root) from the heap
-    int extractMax() {
+    Ticket extractMax() {
         if (heap.empty()) {
             throw std::out_of_range("Heap is empty");
         }
 
-        int maxVal = heap[0];
+        Ticket maxVal = heap[0];
 
         // Move the last element to the root and shrink the vector
         heap[0] = heap.back();
         heap.pop_back();
 
         if (!heap.empty()) {
-            heapifyDown(0);
+            // heapifyDown(0); FIX THIS
         }
 
         return maxVal;
     }
 
     // Return the maximum element without removing it
-    int getMax() const {
+    Ticket getMax() const {
         if (heap.empty()) {
             throw std::out_of_range("Heap is empty");
         }
