@@ -60,7 +60,7 @@ int main() {
     CROW_ROUTE(app, "/get_all_entries")([](const crow::request& req, crow::response& res){
         // Select all entries from SQLite
         // TODO: Implement and integrate sorting with maxheap
-        vector<Ticket> tickets_list = get_all_entries_from_db();
+        vector<Ticket> tickets_list = get_all_entries_from_db_sorted();
         vector<crow::json::wvalue> tickets_list_json;
         for(Ticket ticket: tickets_list) {
             tickets_list_json.push_back(ticket.get_as_json());

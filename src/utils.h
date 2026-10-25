@@ -9,6 +9,7 @@
 
 #include <sqlite3.h>
 
+#include "maxheap.h"
 #include "ticket.h"
 
 using std::cout, std::string, std::to_string, std::vector;
@@ -100,4 +101,22 @@ vector<Ticket> get_all_entries_from_db() {
 
     sqlite3_close(db_pointer);
     return results;
+}
+
+// Return list of all Tickets, sorted using a maxheap
+vector<Ticket> get_all_entries_from_db_sorted() {
+    MaxHeap tickets_maxheap;
+
+    vector<Ticket> all_db_entries = get_all_entries_from_db();
+    for(Ticket ticket: all_db_entries) {
+        tickets_maxheap.insert(ticket);
+    }
+    all_db_entries.clear();
+
+    while(!tickets_maxheap.is_empty()) {
+        all_db_entries.push_back(tickets_maxheap.get_top());
+        tickets_maxheap.delete_max();
+    }
+
+    return all_db_entries;
 }

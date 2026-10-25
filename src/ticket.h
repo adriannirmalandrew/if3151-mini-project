@@ -53,6 +53,11 @@ public:
         return ticket_json.dump();
     }
 
+    // Operators for MaxHeap
+    bool operator==(const Ticket& other) const {
+        return this->uuid == other.uuid;
+    }
+
     // Getters
     string get_uuid() {
         return this->uuid;
