@@ -3,9 +3,12 @@
  */
 #pragma once
 
+#include <crow/json.h>
 #include <string>
 #include <ctime>
 #include <cmath>
+
+#include <crow.h>
 
 using std::string, std::exp;
 
@@ -34,6 +37,20 @@ public:
 
         // Populate all fields
         this->calculate_values();
+    }
+
+    // Convert to JSON using Crow
+    string get_as_json() {
+        crow::json::wvalue ticket_json;
+        ticket_json["uuid"] = this->uuid;
+        ticket_json["description"] = this->description;
+        ticket_json["creation_time"] = this->creation_time;
+        ticket_json["deadline_time"] = this->deadline_time;
+        ticket_json["priority"] = this->priority;
+        ticket_json["days_left"] = this->days_left;
+        ticket_json["score"] = this->score;
+
+        return ticket_json.dump();
     }
 
     // Getters

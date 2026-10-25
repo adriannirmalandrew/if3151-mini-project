@@ -9,9 +9,9 @@ using std::cout, std::vector, std::endl;
 int main() {
     // Create record
     long long current_timestamp = static_cast<long long>(std::time(nullptr));
-    long long test_days = current_timestamp + (86400);
+    long long test_days = current_timestamp - (86400);
 
-    add_record_to_db("test73", "test_desc", current_timestamp, test_days, 300);
+    add_record_to_db("test74", "test_desc", current_timestamp, test_days, 300);
 
     // Delete record
     delete_record_from_db("test");
