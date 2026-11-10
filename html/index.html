@@ -29,7 +29,7 @@
 <body>
 
 <div class="container">
-    <h1>🎫 ADSA Ticket Manager</h1>
+    <h1>🎫 ADSA Mini Project: Support Ticket Priority Table</h1>
 
     <!-- Add New Ticket Form -->
     <h2>Add New Ticket</h2>
@@ -61,7 +61,7 @@
                 <th>UUID</th>
                 <th>Description</th>
                 <th>Priority</th>
-                <th>Days Left</th>
+                <th>Deadline</th>
                 <th>Score</th>
                 <th>Actions</th>
             </tr>
@@ -94,9 +94,9 @@
 
                 // --- Determine CSS class based on priority ---
                 let rowClass = '';
-                if (ticket.priority >= 8) {
+                if (ticket.score >= 15000) {
                     rowClass = 'priority-high';
-                } else if (ticket.priority >= 4) {
+                } else if (ticket.score >= 10000) {
                     rowClass = 'priority-med';
                 } else {
                     rowClass = 'priority-low';
@@ -113,11 +113,13 @@
                   priority_id = 'P3';
 
                 // --- Populate the table cells ---
+                let deadline_date = new Date(ticket.deadline_time * 1000).toDateString();
+
                 row.innerHTML = `
                     <td>${ticket.uuid}</td>
                     <td>${ticket.description}</td>
                     <td>${priority_id}</td>
-                    <td>${ticket.days_left}</td>
+                    <td>${deadline_date} (${ticket.days_left} days left)</td>
                     <td>${ticket.score}</td>
                     <td>
                         <button class="delete-btn" onclick="deleteTicket('${ticket.uuid}')">Delete</button>
