@@ -6,6 +6,10 @@ This project implements a priority queue for support tickets using a max heap.
 
 This system is used to keep track of support tickets, scored on the basis of both their deadline date and assigned priority, then ordered in descending order, with the highest scores indicating the highest urgency.
 
+## Output
+
+Screenshots of the application have been saved in /screenshots.
+
 ## Implementation
 
 This project is implemented entirely in C++, and relies on the following external libraries:
